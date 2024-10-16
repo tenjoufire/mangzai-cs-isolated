@@ -37,8 +37,8 @@ namespace Company.Function
                     new UserChatMessage(promptText)
 
                 ]);
-
-            return new OkObjectResult("Welcome to Azure Functions!");
+            //TODO: JSON response {"text": completion.Content[0].Text}
+            return new OkObjectResult(completion.Content[0].Text);
         }
     }
 }
