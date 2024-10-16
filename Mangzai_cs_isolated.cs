@@ -36,13 +36,13 @@ namespace Company.Function
             //リクエストBodyの中にあるテキストを抽出
             string promptText = data?.text ?? string.Empty;
 
-            // Create an OpenAI client
+            //AOAI クライアントの作成
             AzureOpenAIClient client = new(
                 new Uri(Environment.GetEnvironmentVariable("OPENAI_ENDPOINT")),
                 new DefaultAzureCredential()
             );
 
-            // Get the chat client
+            //チャットクライアントの作成とAPI呼び出し
             ChatClient chatClient = client.GetChatClient(Environment.GetEnvironmentVariable("MODEL_DEPLOYMENT_NAME"));
             ChatCompletion completion = await chatClient.CompleteChatAsync(
                 [
@@ -51,7 +51,7 @@ namespace Company.Function
 
                 ]);
             
-            // Return the response as JSON
+            //AOAIからの応答をJSONで返す
             var response = new { text = completion.Content[0].Text };
             string jsonResponse = JsonConvert.SerializeObject(response);
             return new OkObjectResult(jsonResponse);
