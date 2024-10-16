@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "mangzai_cs_isolated": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7286",
+      "launchBrowser": false
+    }
+  }
+}
