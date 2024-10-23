@@ -23,11 +23,13 @@ namespace Company.Function
         /// リクエスト本文をJSONで受け取り、その中にあるtextプロパティ情報を使ってOpenAI Chat APIを呼び出す
         /// </summary>
         /// <param name="req"></param>
-        /// <returns></returns>
+        /// <returns>JSON形式のHTTPレスポンス</returns>
         [Function("Mangzai_cs_isolated")]
-        public async Task<IActionResult> RunAsync([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
+        public async Task<IActionResult> RunAsync([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
+
+            //TODO add custom request 
 
             //リクエストBodyの抽出
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
@@ -36,6 +38,7 @@ namespace Company.Function
             //リクエストBodyの中にあるテキストを抽出
             string promptText = data?.text ?? string.Empty;
 
+            //TODO use DI to inject the client
             //AOAI クライアントの作成
             AzureOpenAIClient client = new(
                 new Uri(Environment.GetEnvironmentVariable("OPENAI_ENDPOINT")),
