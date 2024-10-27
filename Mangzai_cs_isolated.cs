@@ -12,10 +12,12 @@ namespace Company.Function
     public class Mangzai_cs_isolated
     {
         private readonly ILogger<Mangzai_cs_isolated> _logger;
+        private readonly AzureOpenAIClient _openAIClient;
 
-        public Mangzai_cs_isolated(ILogger<Mangzai_cs_isolated> logger)
+        public Mangzai_cs_isolated(ILogger<Mangzai_cs_isolated> logger, AzureOpenAIClient openAIClient)
         {
             _logger = logger;
+            _openAIClient = openAIClient; 
         }
 
         /// <summary>
@@ -40,13 +42,13 @@ namespace Company.Function
 
             //TODO use DI to inject the client
             //AOAI クライアントの作成
-            AzureOpenAIClient client = new(
+            /*AzureOpenAIClient client = new(
                 new Uri(Environment.GetEnvironmentVariable("OPENAI_ENDPOINT")),
                 new DefaultAzureCredential()
-            );
+            );*/
 
             //チャットクライアントの作成とAPI呼び出し
-            ChatClient chatClient = client.GetChatClient(Environment.GetEnvironmentVariable("MODEL_DEPLOYMENT_NAME"));
+            ChatClient chatClient = _openAIClient.GetChatClient(Environment.GetEnvironmentVariable("MODEL_DEPLOYMENT_NAME"));
             ChatCompletion completion = await chatClient.CompleteChatAsync(
                 [
                     new SystemChatMessage(Prompts.SystemMessage),
