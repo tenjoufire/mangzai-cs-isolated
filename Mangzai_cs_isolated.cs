@@ -29,23 +29,21 @@ namespace Company.Function
         [Function("Mangzai_cs_isolated")]
         public async Task<IActionResult> RunAsync([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req)
         {
-            _logger.LogInformation("C# HTTP trigger function processed a request.");
-
-            //TODO add custom request 
+            _logger.LogInformation("C# isolated HTTP trigger function processed a request.");
 
             //リクエストBodyの抽出
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            dynamic data = JsonConvert.DeserializeObject(requestBody);
+            dynamic? data = JsonConvert.DeserializeObject(requestBody);
 
             //リクエストBodyの中にあるテキストを抽出
             string promptText = data?.text ?? string.Empty;
 
-            //TODO use DI to inject the client
-            //AOAI クライアントの作成
-            /*AzureOpenAIClient client = new(
-                new Uri(Environment.GetEnvironmentVariable("OPENAI_ENDPOINT")),
-                new DefaultAzureCredential()
-            );*/
+            if (string.IsNullOrEmpty(promptText))
+            {
+                return new BadRequestObjectResult("Please pass a text in the request body");
+            }
+
+            _logger.LogInformation($"Prompt text: {promptText}");
 
             //チャットクライアントの作成とAPI呼び出し
             ChatClient chatClient = _openAIClient.GetChatClient(Environment.GetEnvironmentVariable("MODEL_DEPLOYMENT_NAME"));
