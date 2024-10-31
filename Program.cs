@@ -12,6 +12,7 @@ var host = new HostBuilder()
         services.ConfigureFunctionsApplicationInsights();
         services.AddAzureClients(builder =>
         {
+            //Azure OpenAI のクライアントを DI コンテナに登録
             builder.AddClient<AzureOpenAIClient, AzureOpenAIClientOptions>((options) =>
             {
                 var endpoint = new Uri(Environment.GetEnvironmentVariable("OPENAI_ENDPOINT"))
