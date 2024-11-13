@@ -12,17 +12,24 @@ var host = new HostBuilder()
         services.ConfigureFunctionsApplicationInsights();
         services.AddAzureClients(builder =>
         {
-            //Azure OpenAI のクライアントを DI コンテナに登録
-            builder.AddClient<AzureOpenAIClient, AzureOpenAIClientOptions>((options) =>
+            try
             {
-                var endpoint = new Uri(Environment.GetEnvironmentVariable("OPENAI_ENDPOINT"))
-                    ?? throw new InvalidOperationException("openai endpoint is not set");
-                var credential = new DefaultAzureCredential();
-                return new AzureOpenAIClient(endpoint, credential, options);
-            });
+                //Azure OpenAI のクライアントを DI コンテナに登録
+                builder.AddClient<AzureOpenAIClient, AzureOpenAIClientOptions>((options) =>
+                {
+                    var endpoint = new Uri(Environment.GetEnvironmentVariable("OPENAI_ENDPOINT"))
+                        ?? throw new InvalidOperationException("openai endpoint is not set");
+                    var credential = new DefaultAzureCredential();
+                    return new AzureOpenAIClient(endpoint, credential, options);
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"An error occurred while creating the OpenAI client: {ex.Message}");
+                throw;
+            }
         });
     })
     .Build();
-
 
 host.Run();
