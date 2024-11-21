@@ -29,35 +29,43 @@ namespace Company.Function
         [Function("Mangzai_cs_isolated")]
         public async Task<IActionResult> RunAsync([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req)
         {
-            _logger.LogInformation("C# isolated HTTP trigger function processed a request.");
-
-            //リクエストBodyの抽出
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            dynamic? data = JsonConvert.DeserializeObject(requestBody);
-
-            //リクエストBodyの中にあるテキストを抽出
-            string promptText = data?.text ?? string.Empty;
-
-            if (string.IsNullOrEmpty(promptText))
+            try
             {
-                return new BadRequestObjectResult("Please pass a text in the request body");
+                _logger.LogInformation("C# isolated HTTP trigger function processed a request.");
+
+                //リクエストBodyの抽出
+                string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+                dynamic? data = JsonConvert.DeserializeObject(requestBody);
+
+                //リクエストBodyの中にあるテキストを抽出
+                string promptText = data?.text ?? string.Empty;
+
+                if (string.IsNullOrEmpty(promptText))
+                {
+                    return new BadRequestObjectResult("Please pass a text in the request body");
+                }
+
+                _logger.LogInformation($"Prompt text: {promptText}");
+
+                //チャットクライアントの作成とAPI呼び出し
+                ChatClient chatClient = _openAIClient.GetChatClient(Environment.GetEnvironmentVariable("MODEL_DEPLOYMENT_NAME"));
+                ChatCompletion completion = await chatClient.CompleteChatAsync(
+                    [
+                        new SystemChatMessage(Prompts.SystemMessage),
+                        new UserChatMessage(promptText)
+
+                    ]);
+                
+                //AOAIからの応答をJSONで返す
+                var response = new { text = completion.Content[0].Text };
+                string jsonResponse = JsonConvert.SerializeObject(response);
+                return new OkObjectResult(jsonResponse);
             }
-
-            _logger.LogInformation($"Prompt text: {promptText}");
-
-            //チャットクライアントの作成とAPI呼び出し
-            ChatClient chatClient = _openAIClient.GetChatClient(Environment.GetEnvironmentVariable("MODEL_DEPLOYMENT_NAME"));
-            ChatCompletion completion = await chatClient.CompleteChatAsync(
-                [
-                    new SystemChatMessage(Prompts.SystemMessage),
-                    new UserChatMessage(promptText)
-
-                ]);
-            
-            //AOAIからの応答をJSONで返す
-            var response = new { text = completion.Content[0].Text };
-            string jsonResponse = JsonConvert.SerializeObject(response);
-            return new OkObjectResult(jsonResponse);
+            catch (Exception ex)
+            {
+                _logger.LogError($"Exception occurred: {ex.Message}");
+                return new StatusCodeResult(StatusCodes.Status500InternalServerError);
+            }
         }
     }
 }
