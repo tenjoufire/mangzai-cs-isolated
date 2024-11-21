@@ -8,21 +8,28 @@ using Azure.Identity;
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication()
     .ConfigureServices(services => {
-        services.AddApplicationInsightsTelemetryWorkerService();
-        services.ConfigureFunctionsApplicationInsights();
-        services.AddAzureClients(builder =>
+        try
         {
-            //Azure OpenAI のクライアントを DI コンテナに登録
-            builder.AddClient<AzureOpenAIClient, AzureOpenAIClientOptions>((options) =>
+            services.AddApplicationInsightsTelemetryWorkerService();
+            services.ConfigureFunctionsApplicationInsights();
+            services.AddAzureClients(builder =>
             {
-                var endpoint = new Uri(Environment.GetEnvironmentVariable("OPENAI_ENDPOINT"))
-                    ?? throw new InvalidOperationException("openai endpoint is not set");
-                var credential = new DefaultAzureCredential();
-                return new AzureOpenAIClient(endpoint, credential, options);
+                //Azure OpenAI のクライアントを DI コンテナに登録
+                builder.AddClient<AzureOpenAIClient, AzureOpenAIClientOptions>((options) =>
+                {
+                    var endpoint = new Uri(Environment.GetEnvironmentVariable("OPENAI_ENDPOINT"))
+                        ?? throw new InvalidOperationException("openai endpoint is not set");
+                    var credential = new DefaultAzureCredential();
+                    return new AzureOpenAIClient(endpoint, credential, options);
+                });
             });
-        });
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception occurred: {ex.Message}");
+            throw;
+        }
     })
     .Build();
-
 
 host.Run();
